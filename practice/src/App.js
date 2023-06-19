@@ -4,6 +4,7 @@ import Search from './components/Search'
 import Phonebook from './components/Phonebook'
 import Numbers from './components/Numbers'
 import services from './services/persons'
+import Error from './components/Error'
 
 export default function App() {
   const [usePeople, setPeople] = useState([])
@@ -11,6 +12,7 @@ export default function App() {
   const [newNumber, setNumber] = useState('')
   const [useSearch, setSearch] = useState('')
   const [useSearchResults, setSearchResults] = useState([])
+  const [error, setError] = useState(null)
 
   const getPeople = () => {
     services.getAll().then((people) => {
@@ -21,8 +23,15 @@ export default function App() {
 
   const postPeople = (name, number) => {
     const id = usePeople.length + 1
-    services.createNew(name, number, id)
-    getPeople()
+    services
+      .createNew(name, number, id)
+      .then((res) => {
+        getPeople()
+      })
+      .catch((err) => {
+        console.log(22, err.response.data.error)
+        setError(err.response.data.error)
+      })
   }
 
   const updatePerson = (foundPerson) => {
@@ -51,7 +60,7 @@ export default function App() {
   const addPerson = (e) => {
     e.preventDefault()
     const filtered = usePeople.some((person) => person.name === newName)
-    console.log(filtered);
+    console.log(filtered)
     if (filtered) {
       const foundPerson = usePeople.find((person) => person.name === newName)
       if (
@@ -74,8 +83,15 @@ export default function App() {
     setSearchResults(searchNames)
   }
 
+  useEffect(() => {
+    setTimeout(() => {
+      setError(null)
+    }, [5000])
+  }, [error])
+
   return (
     <div className="App">
+      {error && <Error message={error} />}
       <h2>Name search</h2>
       <Search
         getResults={getResults}
